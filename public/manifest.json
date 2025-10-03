@@ -21,16 +21,20 @@
         }
     ],
     "web_accessible_resources": [
+		    {
+			    "resources": ["assets/*"],
+			    "matches": ["<all_urls>"]
+		    },
         {
-            "resources": ["banners/*"],
+            "resources": ["assets/images/*"],
             "matches": ["<all_urls>"]
         },
         {
-            "resources": ["sounds/*"],
+            "resources": ["assets/sounds/*"],
             "matches": ["<all_urls>"]
         },
         {
-            "resources": ["assets/*"],
+            "resources": ["assets/fonts/*"],
             "matches": ["<all_urls>"]
         }
     ]

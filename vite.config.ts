@@ -15,7 +15,7 @@ export default defineConfig({
                 content: resolve(__dirname, 'src/content.ts')
             },
             formats: ['cjs'],
-            fileName: (format, entryName) => `${entryName}.js`
+            fileName: (_format, entryName) => `${entryName}.js`
         }
     }
 })

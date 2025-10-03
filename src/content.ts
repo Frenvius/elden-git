@@ -1,34 +1,34 @@
-const banners = {
-	'assignmentUpdated': 'banners/assignment-updated.webp',
-    codeReviewed: 'banners/code-reviewed.webp',
-    commentEdited: 'banners/comment-edited.webp',
-    issueClosed: 'banners/issue-closed.webp',
-    issueCommented: 'banners/issue-commented.webp',
-    issueCreated: 'banners/issue-created.webp',
-    issueDuplicated: 'banners/issue-duplicated.webp',
-    issueNotPlanned: 'banners/issue-not-planned.webp',
-    issueReopened: 'banners/issue-reopened.webp',
-    prCommented: 'banners/pull-request-commented.webp',
-    prClosed: 'banners/pull-request-closed.webp',
-    prMade: 'banners/pull-request-made.webp',
-    prMerged: 'banners/pull-request-merged.webp',
-    prReopened: 'banners/pull-request-reopened.webp',
-    repoCreated: 'banners/repository-created.webp',
-    repoDeleted: 'banners/repository-deleted.webp',
-    repoStarred: 'banners/repository-starred.webp',
-    repoUnstarred: 'banners/repository-unstarred.webp',
-    requestedChange: 'banners/requested-change.webp'
+const bannerTexts = {
+    assignmentUpdated: 'ASSIGNMENT UPDATED',
+    codeReviewed: 'CODE REVIEWED',
+    commentEdited: 'COMMENT EDITED',
+    issueClosed: 'ISSUE CLOSED',
+    issueCommented: 'ISSUE COMMENTED',
+    issueCreated: 'ISSUE CREATED',
+    issueDuplicated: 'ISSUE DUPLICATED',
+    issueNotPlanned: 'ISSUE NOT PLANNED',
+    issueReopened: 'ISSUE REOPENED',
+    prCommented: 'PULL REQUEST COMMENTED',
+    prClosed: 'PULL REQUEST CLOSED',
+    prMade: 'PULL REQUEST MADE',
+    prMerged: 'PULL REQUEST MERGED',
+    prReopened: 'PULL REQUEST REOPENED',
+    repoCreated: 'REPOSITORY CREATED',
+    repoDeleted: 'REPOSITORY DELETED',
+    repoStarred: 'REPOSITORY STARRED',
+    repoUnstarred: 'REPOSITORY UNSTARRED',
+    requestedChange: 'REQUESTED CHANGE'
 } as const
 
-export type Actions = keyof typeof banners
+export type Actions = keyof typeof bannerTexts
 
 const sounds = {
-    newItem: 'sounds/new-item.mp3',
-    enemyFailed: 'sounds/enemy-failed.mp3'
+    newItem: 'assets/sounds/new-item.mp3',
+    enemyFailed: 'assets/sounds/enemy-failed.mp3'
 } as const
 
 const bannerSounds = {
-	assignmentUpdated: 'newItem',
+    assignmentUpdated: 'newItem',
     codeReviewed: 'newItem',
     commentEdited: 'newItem',
     issueClosed: 'enemyFailed',
@@ -48,6 +48,36 @@ const bannerSounds = {
     repoUnstarred: 'enemyFailed',
     requestedChange: 'enemyFailed'
 } as const satisfies { [image in Actions]: keyof typeof sounds }
+
+type MessageType = 'victory' | 'lostGrace' | 'death'
+
+const messageColors = {
+    victory: '#DCAF2D',
+    lostGrace: '#DC8738',
+    death: '#7B1414'
+} as const
+
+const bannerTypes = {
+    assignmentUpdated: 'victory',
+    codeReviewed: 'victory',
+    commentEdited: 'victory',
+    issueClosed: 'death',
+    issueCommented: 'victory',
+    issueCreated: 'lostGrace',
+    issueDuplicated: 'lostGrace',
+    issueNotPlanned: 'lostGrace',
+    issueReopened: 'victory',
+    prCommented: 'victory',
+    prClosed: 'death',
+    prMade: 'victory',
+    prMerged: 'victory',
+    prReopened: 'victory',
+    repoCreated: 'victory',
+    repoDeleted: 'death',
+    repoStarred: 'victory',
+    repoUnstarred: 'death',
+    requestedChange: 'lostGrace'
+} as const satisfies { [action in Actions]: MessageType }
 
 const animations = {
     duration: 1000,
@@ -71,24 +101,90 @@ chrome.runtime.onMessage.addListener((message?: { action?: Actions }) => {
     show(message.action)
 })
 
+function loadLocalFont() {
+    if (document.querySelector('[data-elden-font]')) return;
+
+    const style = document.createElement('style');
+    style.setAttribute('data-elden-font', 'true');
+    style.textContent = `
+        @font-face {
+            font-family: 'Cormorant Garamond';
+            font-style: normal;
+            font-weight: 600;
+            font-display: swap;
+            src: url('${chrome.runtime.getURL('assets/fonts/cormorant-garamond-600.ttf')}') format('truetype');
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 function show(
     action: Actions,
     delay = delays[action as keyof typeof delays] ?? 1000
 ) {
-    if (action in banners === false) return
+    if (action in bannerTexts === false) return
 
-    const banner = document.createElement('img')
-    banner.src = chrome.runtime.getURL(banners[action])
-    banner.style.position = 'fixed'
-    banner.style.top = '0px'
-    banner.style.right = '0px'
-    banner.style.zIndex = '9999'
+    loadLocalFont();
+
+    const messageType = bannerTypes[action]
+    const color = messageColors[messageType]
+
+    const banner = document.createElement('div')
+    const backgroundText = document.createElement('div')
+    const foregroundText = document.createElement('div')
+
+    backgroundText.textContent = bannerTexts[action]
+    foregroundText.textContent = bannerTexts[action]
+
+    banner.style.top = '0'
+    banner.style.left = '0'
+    banner.style.right = '0'
+    banner.style.opacity = '1'
     banner.style.width = '100%'
     banner.style.height = '100vh'
-    banner.style.objectFit = 'cover'
-    banner.style.objectPosition = 'center'
-    banner.style.opacity = '1'
+    banner.style.zIndex = '9999'
+    banner.style.position = 'fixed'
     banner.style.pointerEvents = 'none'
+    banner.style.backgroundSize = 'cover'
+    banner.style.backgroundPosition = 'center'
+    banner.style.backgroundRepeat = 'no-repeat'
+    banner.style.backgroundImage = `url('${chrome.runtime.getURL('assets/images/message-background.webp')}')`
+
+    const textShadow = '0 0 20px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.8), 2px 2px 8px rgba(0, 0, 0, 0.6)'
+
+    const applyCommonTextStyles = (element: HTMLDivElement) => {
+        element.style.top = '50%'
+        element.style.left = '50%'
+        element.style.color = color
+        element.style.width = '100%'
+        element.style.fontSize = '92px'
+        element.style.fontWeight = '600'
+        element.style.marginTop = '-10px'
+        element.style.textAlign = 'center'
+        element.style.position = 'absolute'
+        element.style.transform = 'translate(-50%, -50%)'
+        element.style.fontFamily = "'Cormorant Garamond', serif"
+    }
+
+    applyCommonTextStyles(backgroundText)
+    backgroundText.style.opacity = '0.18'
+    backgroundText.style.letterSpacing = '5px'
+    backgroundText.style.textShadow = textShadow
+
+    applyCommonTextStyles(foregroundText)
+    foregroundText.style.letterSpacing = '-1px'
+
+    if (messageType !== 'death') {
+        foregroundText.style.mixBlendMode = 'plus-lighter'
+        foregroundText.style.textShadow = textShadow
+    }
+
+    if (messageType === 'death') {
+        banner.appendChild(foregroundText)
+    } else {
+        banner.appendChild(backgroundText)
+        banner.appendChild(foregroundText)
+    }
 
     const audio = new Audio(chrome.runtime.getURL(sounds[bannerSounds[action]]))
     audio.volume = 0.25
