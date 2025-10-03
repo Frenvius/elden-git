@@ -246,6 +246,14 @@ chrome.webRequest.onBeforeRequest.addListener(
             return
         }
 
+        if (match(/https:\/\/github.com\/.*?\/.*?\/star/g)) {
+            return void dispatch('repoStarred', detail)
+        }
+
+        if (match(/https:\/\/github.com\/.*?\/.*?\/unstar/g)) {
+            return void dispatch('repoUnstarred', detail)
+        }
+
         return undefined
     },
     { urls: ['https://github.com/*'] },
