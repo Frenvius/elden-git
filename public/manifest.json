@@ -9,7 +9,11 @@
         "128": "assets/icons/elden-git-128.png"
     },
     "permissions": ["webRequest", "tabs", "storage"],
-    "host_permissions": ["https://github.com/*"],
+    "host_permissions": [
+        "https://github.com/*",
+        "https://*.dev.azure.com/*",
+        "https://*.visualstudio.com/*"
+    ],
     "background": {
         "service_worker": "background.js"
     },
@@ -18,6 +22,14 @@
             "matches": ["https://github.com/*"],
             "js": ["content.js"],
             "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "https://*.dev.azure.com/*",
+                "https://*.visualstudio.com/*"
+            ],
+            "js": ["content.js"],
+            "run_at": "document_start"
         }
     ],
     "web_accessible_resources": [
@@ -36,6 +48,13 @@
         {
             "resources": ["assets/fonts/*"],
             "matches": ["<all_urls>"]
+        },
+        {
+            "resources": ["inject-azure.js"],
+            "matches": [
+                "https://*.dev.azure.com/*",
+                "https://*.visualstudio.com/*"
+            ]
         }
     ]
 }

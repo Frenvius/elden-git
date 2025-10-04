@@ -94,6 +94,26 @@ const delays = {
     repoDeleted: 0
 } as const satisfies Partial<{ [delay in Actions]: number }>
 
+// Azure DevOps inject script bridge
+if (/(dev\.azure\.com|\.visualstudio\.com)$/.test(location.hostname)) {
+    const script = document.createElement('script')
+    script.src = chrome.runtime.getURL('inject-azure.js')
+    script.async = false
+        ; (document.head || document.documentElement).appendChild(script)
+    script.addEventListener('load', () => script.remove())
+
+    window.addEventListener('message', (event: MessageEvent) => {
+        if (event.source !== window) return
+        const data = event.data
+        if (!data || data.type !== 'elden:azure:request') return
+
+        chrome.runtime.sendMessage({
+            type: 'elden:azure:request',
+            payload: data.payload
+        })
+    })
+}
+
 // Listen for background messages
 chrome.runtime.onMessage.addListener((message?: { action?: Actions }) => {
     if (!message?.action) return
@@ -187,7 +207,7 @@ function show(
     }
 
     const audio = new Audio(chrome.runtime.getURL(sounds[bannerSounds[action]]))
-    audio.volume = 0.25
+    audio.volume = 0.15
 
     setTimeout(() => {
         requestIdleCallback(() => {
